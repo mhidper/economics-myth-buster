@@ -2,6 +2,12 @@
 
 Una aplicación educativa inteligente que ayuda a estudiantes a identificar y desmentir mitos económicos comunes usando inteligencia artificial.
 
+## 🌐 **¡Pruébala ahora!**
+
+**🔗 [Usar la aplicación online](https://economics-myth-buster.vercel.app)** ← ¡Clic aquí!
+
+*No necesitas instalar nada - funciona directamente en tu navegador*
+
 ![Economics Myth Buster](https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6)
 
 ## 🚀 Características
@@ -11,6 +17,9 @@ Una aplicación educativa inteligente que ayuda a estudiantes a identificar y de
 - 🤖 **Powered by Google Gemini AI** para evaluación inteligente
 - 📱 **Interfaz responsive** y fácil de usar
 - 🇪🇸 **Completamente en español**
+- 🌐 **Disponible online** - sin instalación requerida
+- 🔐 **Tu propia API** - usa tu clave personal de Gemini (gratis)
+- 📊 **10 preguntas por cuestionario** para evaluación completa
 
 ## 🛠️ Tecnologías
 
@@ -29,7 +38,7 @@ Una aplicación educativa inteligente que ayuda a estudiantes a identificar y de
 
 1. **Clona el repositorio**
    ```bash
-   git clone https://github.com/tu-usuario/economics-myth-buster.git
+   git clone https://github.com/mhidper/economics-myth-buster.git
    cd economics-myth-buster
    ```
 
@@ -59,18 +68,20 @@ Una aplicación educativa inteligente que ayuda a estudiantes a identificar y de
    http://localhost:5173
    ```
 
-## 🎯 Cómo Usar la Aplicación
+## 🎆 **¿Cómo usar la aplicación online?**
 
-1. **Proporciona Material**: Pega texto de tu curso de economía o sube un PDF
-2. **Genera Quiz**: La IA creará 5 preguntas diseñadas para detectar mitos comunes
-3. **Responde Preguntas**: Completa el cuestionario con tus mejores respuestas
-4. **Recibe Feedback**: Obtén explicaciones detalladas y aprende sobre mitos económicos
+1. **Ve a la aplicación**: [economics-myth-buster.vercel.app](https://economics-myth-buster.vercel.app)
+2. **Obtén tu API Key gratis**: 
+   - Ve a [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Inicia sesión con tu cuenta de Google
+   - Crea una nueva API Key gratuita
+3. **Introduce tu API Key** en la aplicación (solo la primera vez)
+4. **Sube tu material**: PDF o pega texto de economía
+5. **¡Responde el cuestionario y aprende!**
 
-## 🌐 Demo en Línea
+*Tu API Key se guarda localmente en tu navegador - nunca la vemos nosotros*
 
-🔗 **[Ver aplicación en vivo](https://tu-usuario.github.io/economics-myth-buster)**
 
-*Nota: También funciona desde la interfaz - no necesitas clave de API en el archivo, puedes introducirla directamente en la app.*
 
 ## 🤝 Contribuir
 
