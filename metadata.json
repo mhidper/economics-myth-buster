@@ -1,0 +1,5 @@
+{
+  "name": "Economics Myth Buster",
+  "description": "An application for students to test their economics knowledge. It generates quizzes from course materials and uses an LLM to evaluate answers, specifically identifying and debunking common economic myths.",
+  "requestFramePermissions": []
+}
