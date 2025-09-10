@@ -8,13 +8,10 @@ import Alert from './components/Alert';
 import ApiKeySetup from './components/ApiKeySetup'; // New component
 import { generateQuizFromMaterial, evaluateStudentAnswers } from './services/geminiService';
 import { AppState, QuizQuestion, StudentAnswer, EvaluationResult } from './types';
+import * as pdfjsLib from 'pdfjs-dist';
 
-// Add a global declaration for pdfjsLib to inform TypeScript that it will be available on the window object
-declare global {
-  interface Window {
-    pdfjsLib: any;
-  }
-}
+// Import the worker
+import 'pdfjs-dist/build/pdf.worker.mjs';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.INPUT);
@@ -34,9 +31,11 @@ const App: React.FC = () => {
 
   // Set the worker source for pdf.js once the component mounts
   useEffect(() => {
-    if (window.pdfjsLib) {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.5.136/pdf.worker.min.js`;
-    }
+    // Configure PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+      'pdfjs-dist/build/pdf.worker.mjs',
+      import.meta.url
+    ).toString();
   }, []);
   
   const handleApiKeySubmit = (key: string) => {
@@ -63,21 +62,23 @@ const App: React.FC = () => {
 
     try {
       if (source instanceof File) {
-        if (!window.pdfjsLib) {
-            throw new Error("La librería para leer PDFs (pdf.js) no se ha cargado correctamente. Por favor, refresca la página.");
+        try {
+          const arrayBuffer = await source.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const numPages = pdf.numPages;
+          let fullText = '';
+          
+          for (let i = 1; i <= numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((item: any) => item.str).join(' ');
+            fullText += pageText + '\n\n';
+          }
+          materialText = fullText;
+        } catch (pdfError) {
+          console.error('Error processing PDF:', pdfError);
+          throw new Error("No se pudo procesar el archivo PDF. Asegúrate de que es un PDF válido con texto (no escaneado).");
         }
-        const arrayBuffer = await source.arrayBuffer();
-        const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const numPages = pdf.numPages;
-        let fullText = '';
-        
-        for (let i = 1; i <= numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items.map((item: any) => item.str).join(' ');
-          fullText += pageText + '\n\n';
-        }
-        materialText = fullText;
 
       } else {
         materialText = source;
