@@ -11,6 +11,10 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
   const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string>('');
+  
+  // Datos del estudiante para Google Sheets
+  const [studentName, setStudentName] = useState<string>('');
+  const [studentEmail, setStudentEmail] = useState<string>('');
 
   // Función para detectar asignaturas disponibles
   const loadAvailableSubjects = async () => {
@@ -138,6 +142,49 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
                 className="h-12 w-auto"
               />
             </div>
+        
+        {/* Datos del Estudiante */}
+        <div className="bg-slate-50 border-2 p-6 rounded-xl mb-8 shadow-sm" style={{borderColor: '#003772'}}>
+          <h3 className="text-lg font-semibold mb-4 flex items-center" style={{color: '#003772'}}>
+            <span className="text-2xl mr-2">👨‍🎓</span>
+            Datos del Estudiante
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{color: '#003772'}}>
+                Nombre completo:
+              </label>
+              <input
+                type="text"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                placeholder="Tu nombre completo"
+                className="w-full p-3 border-2 rounded-lg text-base bg-white shadow-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500"
+                style={{borderColor: '#003772'}}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{color: '#003772'}}>
+                Email:
+              </label>
+              <input
+                type="email"
+                value={studentEmail}
+                onChange={(e) => setStudentEmail(e.target.value)}
+                placeholder="tu.email@ejemplo.com"
+                className="w-full p-3 border-2 rounded-lg text-base bg-white shadow-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500"
+                style={{borderColor: '#003772'}}
+              />
+            </div>
+          </div>
+          {studentName && studentEmail && (
+            <div className="mt-4 p-3 rounded-lg text-center" style={{backgroundColor: '#003772', color: 'white'}}>
+              <p className="text-sm font-medium">
+                ✅ Datos completados - Ya puedes seleccionar asignatura
+              </p>
+            </div>
+          )}
+        </div>
             <h2 className="text-4xl font-bold" style={{background: 'linear-gradient(135deg, #003772 0%, #FCC100 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>
               📚 Economics Myth Buster
             </h2>
@@ -152,7 +199,9 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
       
       {/* Selector de Asignaturas */}
       {availableSubjects.length > 0 && (
-        <div className="p-6 rounded-xl mb-8 shadow-lg" style={{background: 'linear-gradient(135deg, #003772 0%, #0056b3 100%)', color: 'white'}}>
+        <div className={`p-6 rounded-xl mb-8 shadow-lg transition-all duration-300 ${
+          !studentName || !studentEmail ? 'opacity-50 pointer-events-none' : ''
+        }`} style={{background: 'linear-gradient(135deg, #003772 0%, #0056b3 100%)', color: 'white'}}>
           <label className="block text-xl font-bold mb-4 flex items-center">
             <span className="text-3xl mr-3">🎯</span>
             Selecciona una asignatura:
