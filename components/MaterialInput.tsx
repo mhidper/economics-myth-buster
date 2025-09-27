@@ -260,6 +260,13 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
           </svg>
         </button>
       </form>
+      
+      {/* Copyright */}
+      <div className="mt-8 text-right">
+        <p className="text-sm" style={{color: '#003772'}}>
+          © 2025 Manuel Alejandro Hidalgo Pérez
+        </p>
+      </div>
       </div>
       </div>
     </div>
