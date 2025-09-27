@@ -7,6 +7,7 @@ import Spinner from './components/Spinner';
 import Alert from './components/Alert';
 import ApiKeySetup from './components/ApiKeySetup'; // New component
 import { generateQuizFromMaterial, evaluateStudentAnswers } from './services/geminiService';
+import { sendToGoogleSheets } from './services/googleSheetsService';
 import { AppState, QuizQuestion, StudentAnswer, EvaluationResult } from './types';
 import * as pdfjsLib from 'pdfjs-dist';
 
@@ -20,6 +21,9 @@ const App: React.FC = () => {
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [evaluationResults, setEvaluationResults] = useState<EvaluationResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
+  // Datos del estudiante para Google Sheets
+  const [studentData, setStudentData] = useState<{name: string, email: string, subject?: string, topic?: string} | null>(null);
 
   // On initial load, check for a saved API key in local storage
   useEffect(() => {
@@ -50,11 +54,18 @@ const App: React.FC = () => {
     handleStartOver();
   };
 
-  const handleGenerateQuiz = useCallback(async (source: string | File) => {
+  const handleGenerateQuiz = useCallback(async (source: string | File, studentInfo?: {name: string, email: string, subject?: string, topic?: string}) => {
     if (!apiKey) {
       setError("La clave de API no está configurada.");
       return;
     }
+    
+    // Guardar datos del estudiante si se proporcionaron
+    if (studentInfo) {
+      setStudentData(studentInfo);
+      console.log('Datos del estudiante guardados:', studentInfo);
+    }
+    
     setError(null);
     setAppState(AppState.GENERATING_QUIZ);
     
@@ -125,6 +136,31 @@ const App: React.FC = () => {
     try {
         const results = await evaluateStudentAnswers(courseMaterial, quizQuestions, studentAnswers, apiKey);
         setEvaluationResults(results);
+        
+        // Enviar datos a Google Sheets si tenemos datos del estudiante
+        if (studentData && studentData.name && studentData.email) {
+          const correctAnswers = results.filter(r => r.isCorrect).length;
+          const totalQuestions = results.length;
+          const wrongQuestions = results
+            .filter(r => !r.isCorrect)
+            .map((r, index) => `Pregunta ${index + 1}`)
+            .join(', ');
+          
+          const analyticsData = {
+            nombre: studentData.name,
+            email: studentData.email,
+            asignatura: studentData.subject || 'No especificada',
+            tema: studentData.topic?.replace('.pdf', '') || 'No especificado',
+            puntuacion: correctAnswers,
+            totalPreguntas: totalQuestions,
+            tiempoSegundos: 0, // Por ahora no medimos tiempo
+            preguntasFalladas: wrongQuestions || 'Ninguna'
+          };
+          
+          console.log('Enviando datos a Google Sheets:', analyticsData);
+          await sendToGoogleSheets(analyticsData);
+        }
+        
         setAppState(AppState.SHOWING_RESULTS);
     } catch (err) {
         console.error(err);
@@ -139,6 +175,7 @@ const App: React.FC = () => {
     setCourseMaterial('');
     setQuizQuestions([]);
     setEvaluationResults([]);
+    setStudentData(null); // Limpiar datos del estudiante
     setError(null);
   }, []);
   

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 interface MaterialInputProps {
-  onGenerate: (source: string | File) => void;
+  onGenerate: (source: string | File, studentData?: {name: string, email: string, subject?: string, topic?: string}) => void;
 }
 
 const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
@@ -97,19 +97,27 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Crear objeto con datos del estudiante
+    const studentData = {
+      name: studentName,
+      email: studentEmail,
+      subject: selectedSubject,
+      topic: selectedTopic
+    };
+    
     // Prioridad: 1. Tema seleccionado, 2. Archivo subido, 3. Texto pegado
     if (selectedSubject && selectedTopic) {
       // Cargar PDF seleccionado desde las carpetas
-      loadSelectedPDF(selectedSubject, selectedTopic);
+      loadSelectedPDF(selectedSubject, selectedTopic, studentData);
     } else if (file) {
-      onGenerate(file);
+      onGenerate(file, studentData);
     } else if (material.trim()) {
-      onGenerate(material);
+      onGenerate(material, studentData);
     }
   };
   
   // Función para cargar el PDF seleccionado
-  const loadSelectedPDF = async (subject: string, topic: string) => {
+  const loadSelectedPDF = async (subject: string, topic: string, studentData: any) => {
     try {
       const pdfPath = `/materials/${subject}/${topic}`;
       console.log('Intentando cargar PDF:', pdfPath);
@@ -123,7 +131,7 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
       const file = new File([blob], topic, { type: 'application/pdf' });
       
       console.log('PDF cargado exitosamente:', topic);
-      onGenerate(file);
+      onGenerate(file, studentData);
     } catch (error) {
       console.error('Error cargando PDF:', error);
       alert(`Error cargando el tema seleccionado: ${error}`);
@@ -134,14 +142,25 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
     <div className="min-h-screen py-12 px-4" style={{backgroundColor: '#003772'}}>
       <div className="bg-white/95 backdrop-blur-sm p-10 rounded-2xl shadow-2xl max-w-4xl mx-auto border-2 animate-fade-in" style={{borderColor: '#003772'}}>
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="p-3 rounded-xl mr-4" style={{backgroundColor: '#003772'}}>
+          <div className="flex items-center justify-center mb-6">
+            <div className="p-2 rounded-lg mr-3" style={{backgroundColor: '#003772'}}>
               <img 
                 src="/images/logo.png" 
                 alt="Universidad Pablo de Olavide" 
-                className="h-12 w-auto"
+                className="h-8 w-auto"
               />
             </div>
+            <h2 className="text-3xl font-bold" style={{background: 'linear-gradient(135deg, #003772 0%, #FCC100 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>
+              📚 Economics Myth Buster
+            </h2>
+          </div>
+          <h3 className="text-2xl font-semibold mb-4" style={{color: '#003772'}}>
+            Selecciona la Asignatura y Material
+          </h3>
+          <p className="text-slate-600 text-lg leading-relaxed max-w-2xl mx-auto">
+            Elige una asignatura de la lista o sube tu propio material.
+          </p>
+        </div>
         
         {/* Datos del Estudiante */}
         <div className="bg-slate-50 border-2 p-6 rounded-xl mb-8 shadow-sm" style={{borderColor: '#003772'}}>
@@ -184,17 +203,6 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
               </p>
             </div>
           )}
-        </div>
-            <h2 className="text-4xl font-bold" style={{background: 'linear-gradient(135deg, #003772 0%, #FCC100 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>
-              📚 Economics Myth Buster
-            </h2>
-          </div>
-          <h3 className="text-2xl font-semibold mb-4" style={{color: '#003772'}}>
-            Selecciona la Asignatura y Material
-          </h3>
-          <p className="text-slate-600 text-lg leading-relaxed max-w-2xl mx-auto">
-            Elige una asignatura de la lista o sube tu propio material.
-          </p>
         </div>
       
       {/* Selector de Asignaturas */}
