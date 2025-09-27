@@ -129,7 +129,7 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
   return (
     <div className="bg-white p-8 rounded-lg shadow-lg max-w-3xl mx-auto animate-fade-in">
       <h2 className="text-2xl font-semibold text-slate-700 mb-2">
-        Paso 1: Selecciona la Asignatura y Material
+        Selecciona la Asignatura y Material
       </h2>
       <p className="text-slate-500 mb-6">
         Elige una asignatura de la lista o sube tu propio material.
