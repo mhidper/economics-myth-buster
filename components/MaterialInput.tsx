@@ -127,24 +127,41 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
   };
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-lg max-w-3xl mx-auto animate-fade-in">
-      <h2 className="text-2xl font-semibold text-slate-700 mb-2">
-        Selecciona la Asignatura y Material
-      </h2>
-      <p className="text-slate-500 mb-6">
-        Elige una asignatura de la lista o sube tu propio material.
-      </p>
+    <div className="min-h-screen py-12 px-4" style={{backgroundColor: '#003772'}}>
+      <div className="bg-white/95 backdrop-blur-sm p-10 rounded-2xl shadow-2xl max-w-4xl mx-auto border-2 animate-fade-in" style={{borderColor: '#003772'}}>
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="p-3 rounded-xl mr-4" style={{backgroundColor: '#003772'}}>
+              <img 
+                src="/images/logo.png" 
+                alt="Universidad Pablo de Olavide" 
+                className="h-12 w-auto"
+              />
+            </div>
+            <h2 className="text-4xl font-bold" style={{background: 'linear-gradient(135deg, #003772 0%, #FCC100 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>
+              📚 Economics Myth Buster
+            </h2>
+          </div>
+          <h3 className="text-2xl font-semibold mb-4" style={{color: '#003772'}}>
+            Selecciona la Asignatura y Material
+          </h3>
+          <p className="text-slate-600 text-lg leading-relaxed max-w-2xl mx-auto">
+            Elige una asignatura de la lista o sube tu propio material.
+          </p>
+        </div>
       
       {/* Selector de Asignaturas */}
       {availableSubjects.length > 0 && (
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            📚 Selecciona una asignatura:
+        <div className="p-6 rounded-xl mb-8 shadow-lg" style={{background: 'linear-gradient(135deg, #003772 0%, #0056b3 100%)', color: 'white'}}>
+          <label className="block text-xl font-bold mb-4 flex items-center">
+            <span className="text-3xl mr-3">🎯</span>
+            Selecciona una asignatura:
           </label>
           <select
             value={selectedSubject}
             onChange={(e) => handleSubjectChange(e.target.value)}
-            className="w-full p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+            className="w-full p-4 border-2 rounded-xl text-lg font-medium bg-white shadow-md hover:shadow-lg transition-all duration-300"
+            style={{borderColor: '#FCC100', color: '#003772'}}
           >
             <option value="">-- Elige una asignatura --</option>
             {availableSubjects.map((subject) => (
@@ -154,21 +171,26 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
             ))}
           </select>
           {selectedSubject && (
-            <p className="text-sm text-green-600 mt-2">
-              ✅ Has seleccionado: <strong>{selectedSubject}</strong>
-            </p>
+            <div className="mt-4 p-3 rounded-lg" style={{backgroundColor: '#FCC100', color: '#003772'}}>
+              <p className="font-bold flex items-center">
+                <span className="text-xl mr-2">✅</span>
+                Asignatura seleccionada: <strong className="ml-2">{selectedSubject}</strong>
+              </p>
+            </div>
           )}
           
           {/* Selector de Temas */}
           {availableTopics.length > 0 && (
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                📝 Selecciona un tema:
+            <div className="mt-6">
+              <label className="block text-xl font-bold mb-4 flex items-center">
+                <span className="text-3xl mr-3">📝</span>
+                Selecciona un tema:
               </label>
               <select
                 value={selectedTopic}
                 onChange={(e) => setSelectedTopic(e.target.value)}
-                className="w-full p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                className="w-full p-4 border-2 rounded-xl text-lg font-medium bg-white shadow-md hover:shadow-lg transition-all duration-300"
+                style={{borderColor: '#FCC100', color: '#003772'}}
               >
                 <option value="">-- Elige un tema --</option>
                 {availableTopics.map((topic) => (
@@ -178,9 +200,12 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
                 ))}
               </select>
               {selectedTopic && (
-                <p className="text-sm text-blue-600 mt-2">
-                  📚 Tema seleccionado: <strong>{selectedTopic.replace('.pdf', '')}</strong>
-                </p>
+                <div className="mt-4 p-3 rounded-lg" style={{backgroundColor: '#FCC100', color: '#003772'}}>
+                  <p className="font-bold flex items-center">
+                    <span className="text-xl mr-2">📚</span>
+                    Tema seleccionado: <strong className="ml-2">{selectedTopic.replace('.pdf', '')}</strong>
+                  </p>
+                </div>
               )}
             </div>
           )}
@@ -219,14 +244,23 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
         <button
           type="submit"
           disabled={!selectedTopic && !material.trim() && !file}
-          className="mt-6 w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors duration-300 flex items-center justify-center"
+          className="mt-8 w-full py-4 px-6 rounded-xl text-xl font-bold shadow-lg hover:shadow-xl disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center"
+          style={{
+            background: !selectedTopic && !material.trim() && !file 
+              ? '#94a3b8' 
+              : 'linear-gradient(135deg, #FCC100 0%, #003772 100%)',
+            color: 'white',
+            border: 'none'
+          }}
         >
+          <span className="text-2xl mr-3">⚡</span>
           {selectedTopic ? `Generar Cuestionario: ${selectedTopic.replace('.pdf', '')}` : 'Generar Cuestionario'}
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </button>
       </form>
+      </div>
       </div>
     </div>
   );
