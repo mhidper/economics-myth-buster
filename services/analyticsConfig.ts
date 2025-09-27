@@ -3,7 +3,7 @@
 
 export const GOOGLE_SHEETS_CONFIG = {
   // Pega aquí tu URL de Google Apps Script
-  WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycbwKuL_C7nIfiHdldN322xtgWEQhfJe5QUqso0TPfdyX0BZYUQtxOL102263sBvNK-Vbxg/exec',
+  WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycby4CYbakCig3JQpSvxbs-OGn4uj8Ct7MOaPGbbmHp4k2rdxGOtCZIdOGa4BWEDk5JeEJw/exec',
   
   // Configuración adicional
   ENABLED: true,
