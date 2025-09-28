@@ -41,27 +41,33 @@ export default async function handler(req, res) {
   try {
     const quizData = req.body;
     
-    // NUEVO: Añadir timestamp y metadata adicional
-    const enrichedData = {
-      ...quizData,
-      timestamp: new Date().toISOString(),
-      version: '1.1' // Para identificar datos con nuevos campos
-    };
+    console.log('📥 Datos recibidos:', JSON.stringify(quizData, null, 2));
     
     // Validar datos de entrada
     validateQuizData(quizData);
     
-    // Añadir metadata adicional
+    // NUEVO: Preparar datos enriquecidos con toda la información
     const enrichedData = {
       ...quizData,
       timestamp: new Date().toISOString(),
       id: `quiz_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      version: '2.0', // Nueva versión con behaviorData
       userAgent: req.headers['user-agent'] || 'unknown',
       ip: req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown'
     };
     
     const blobFileName = 'resultados.json';
     console.log(`📝 Procesando nuevo resultado para: ${quizData.nombre}`);
+    
+    // NUEVO: Log de datos de comportamiento si existen
+    if (quizData.behaviorData) {
+      console.log('📊 Datos de comportamiento incluidos:', {
+        tiempos: quizData.behaviorData.tiemposPorPregunta?.length || 0,
+        cambios: quizData.behaviorData.cambiosPorPregunta?.length || 0,
+        dificultad: quizData.behaviorData.dificultadPercibida,
+        comentario: quizData.behaviorData.comentarioGlobal ? 'SÍ' : 'NO'
+      });
+    }
 
     // 1. LEER ARCHIVO EXISTENTE
     const { blobs } = await list({ prefix: blobFileName });
@@ -97,24 +103,32 @@ export default async function handler(req, res) {
     
     console.log(`💾 Resultados guardados exitosamente. URL: ${url}`);
 
-    // 5. RESPUESTA DE ÉXITO
+    // 5. RESPUESTA DE ÉXITO CON MÁS INFORMACIÓN
     res.status(200).json({ 
       success: true,
       message: 'Resultados guardados correctamente', 
       blobUrl: url,
       totalResults: allResults.length,
       studentName: quizData.nombre,
-      score: `${quizData.puntuacion}/${quizData.totalPreguntas}`
+      score: `${quizData.puntuacion}/${quizData.totalPreguntas}`,
+      // NUEVO: Información sobre datos guardados
+      dataIncluded: {
+        behaviorData: !!quizData.behaviorData,
+        globalComment: !!(quizData.behaviorData?.comentarioGlobal),
+        difficulty: quizData.behaviorData?.dificultadPercibida || null
+      }
     });
 
   } catch (error) {
     console.error('❌ Error procesando la petición:', error);
+    console.error('Stack trace:', error.stack);
     
     // Respuesta de error más detallada
     res.status(500).json({ 
       success: false,
       message: 'Error interno del servidor',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Error interno'
+      error: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 }
