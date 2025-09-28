@@ -1,7 +1,7 @@
-import { GOOGLE_SHEETS_CONFIG } from './analyticsConfig';
+// Ya no necesitamos importar la configuración de Google Sheets
 
-// Función para enviar datos a Google Sheets
-export const sendToGoogleSheets = async (data: {
+// Función para enviar datos a nuestra propia API en Vercel
+export const sendToGoogleSheets = async (data: { // Puedes mantener el nombre o cambiarlo a sendResults
   nombre: string;
   email: string;
   asignatura: string;
@@ -12,23 +12,10 @@ export const sendToGoogleSheets = async (data: {
   preguntasFalladas: string;
 }) => {
   try {
-    if (!GOOGLE_SHEETS_CONFIG.ENABLED) {
-      console.log('Analytics deshabilitado');
-      return;
-    }
+    console.log('Enviando datos a nuestra API en Vercel:', data);
 
-    // Solo enviar en producción (Vercel), no en localhost
-    const isProduction = window.location.hostname !== 'localhost';
-    
-    if (!isProduction) {
-      console.log('🔧 Modo desarrollo - Datos que se enviarían:', data);
-      console.log('✅ (En producción se enviaría a Google Sheets)');
-      return;
-    }
-
-    console.log('Enviando datos a Google Sheets:', data);
-
-    const response = await fetch(GOOGLE_SHEETS_CONFIG.WEBHOOK_URL, {
+    // 1. EL CAMBIO CLAVE: La URL ahora apunta a nuestra API interna.
+    const response = await fetch('/api/guardar-resultados', { // ¡Adiós, URL de Google!
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,28 +23,31 @@ export const sendToGoogleSheets = async (data: {
       body: JSON.stringify(data)
     });
 
+    // 2. Simplificamos el código: Ya no hace falta comprobar si es localhost,
+    // porque esta llamada funciona tanto en local como en producción.
+
     if (response.ok) {
-      console.log('✅ Datos enviados correctamente a Google Sheets');
+      console.log('✅ Datos recibidos por la API de Vercel');
     } else {
-      console.error('❌ Error enviando datos:', response.status);
+      console.error('❌ La API de Vercel devolvió un error:', response.status);
     }
 
   } catch (error) {
-    console.error('❌ Error conectando con Google Sheets:', error);
+    console.error('❌ Error de red al contactar la API de Vercel:', error);
   }
 };
 
-// Función de prueba para verificar que funciona
+// Puedes mantener la función de prueba si quieres, ¡ahora funcionará!
 export const testGoogleSheets = async () => {
   const datosTest = {
-    nombre: 'Estudiante Test',
-    email: 'test@ejemplo.com',
+    nombre: 'Estudiante Test API',
+    email: 'test@vercel.com',
     asignatura: 'Economía Política',
     tema: 'Tema 1. La Escasez',
-    puntuacion: 8,
+    puntuacion: 10,
     totalPreguntas: 10,
-    tiempoSegundos: 300,
-    preguntasFalladas: 'Pregunta 3, Pregunta 7'
+    tiempoSegundos: 150,
+    preguntasFalladas: 'Ninguna'
   };
 
   await sendToGoogleSheets(datosTest);
