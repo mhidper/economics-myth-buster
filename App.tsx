@@ -6,9 +6,9 @@ import ResultsView from './components/ResultsView';
 import Spinner from './components/Spinner';
 import Alert from './components/Alert';
 import ApiKeySetup from './components/ApiKeySetup'; // New component
-import { generateQuizFromMaterial, evaluateStudentAnswers } from './services/geminiService';
+import { generateQuizFromMaterial, evaluateStudentAnswers, generateGlobalComment } from './services/geminiService';
 import { sendToGoogleSheets } from './services/googleSheetsService';
-import { AppState, QuizQuestion, StudentAnswer, EvaluationResult } from './types';
+import { AppState, QuizQuestion, StudentAnswer, EvaluationResult, QuizBehaviorData } from './types';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Import the worker
@@ -24,6 +24,12 @@ const App: React.FC = () => {
   
   // Datos del estudiante para Google Sheets
   const [studentData, setStudentData] = useState<{name: string, email: string, subject?: string, topic?: string} | null>(null);
+  
+  // NUEVO: Datos de comportamiento del quiz
+  const [behaviorData, setBehaviorData] = useState<QuizBehaviorData | null>(null);
+  
+  // NUEVO: Comentario global de IA
+  const [globalComment, setGlobalComment] = useState<string | null>(null);
 
   // On initial load, check for a saved API key in local storage
   useEffect(() => {
@@ -115,12 +121,49 @@ const App: React.FC = () => {
       setAppState(AppState.INPUT);
     }
   }, [apiKey]);
+  
+  // NUEVO: Función para enviar datos completos a Vercel
+  const sendCompleteDataToVercel = useCallback(async (completeBehaviorData: QuizBehaviorData) => {
+    if (studentData && studentData.name && studentData.email && evaluationResults.length > 0) {
+      const correctAnswers = evaluationResults.filter(r => r.isCorrect).length;
+      const totalQuestions = evaluationResults.length;
+      const wrongQuestions = evaluationResults
+        .filter(r => !r.isCorrect)
+        .map((r, index) => `Pregunta ${index + 1}`)
+        .join(', ');
+      
+      // Calcular tiempo total del quiz
+      const tiempoTotal = completeBehaviorData.tiempoInicioQuiz && completeBehaviorData.tiempoFinQuiz 
+        ? Math.round((new Date(completeBehaviorData.tiempoFinQuiz).getTime() - new Date(completeBehaviorData.tiempoInicioQuiz).getTime()) / 1000)
+        : 0;
+      
+      const analyticsData = {
+        nombre: studentData.name,
+        email: studentData.email,
+        asignatura: studentData.subject || 'No especificada',
+        tema: studentData.topic?.replace('.pdf', '') || 'No especificado',
+        puntuacion: correctAnswers,
+        totalPreguntas: totalQuestions,
+        tiempoSegundos: tiempoTotal,
+        preguntasFalladas: wrongQuestions || 'Ninguna',
+        // NUEVO: Datos completos de comportamiento con comentario y dificultad
+        behaviorData: completeBehaviorData
+      };
+      
+      console.log('📤 Enviando datos completos a Vercel:', analyticsData);
+      await sendToGoogleSheets(analyticsData);
+    }
+  }, [studentData, evaluationResults]);
 
-  const handleQuizSubmit = useCallback(async (answers: (number | null)[]) => {
+  const handleQuizSubmit = useCallback(async (answers: (number | null)[], newBehaviorData: QuizBehaviorData) => {
      if (!apiKey) {
       setError("La clave de API no está configurada.");
       return;
     }
+    
+    // NUEVO: Guardar datos de comportamiento
+    setBehaviorData(newBehaviorData);
+    
     setError(null);
     setAppState(AppState.EVALUATING);
 
@@ -137,29 +180,39 @@ const App: React.FC = () => {
         const results = await evaluateStudentAnswers(courseMaterial, quizQuestions, studentAnswers, apiKey);
         setEvaluationResults(results);
         
-        // Enviar datos a Google Sheets si tenemos datos del estudiante
-        if (studentData && studentData.name && studentData.email) {
-          const correctAnswers = results.filter(r => r.isCorrect).length;
-          const totalQuestions = results.length;
-          const wrongQuestions = results
-            .filter(r => !r.isCorrect)
-            .map((r, index) => `Pregunta ${index + 1}`)
-            .join(', ');
-          
-          const analyticsData = {
-            nombre: studentData.name,
-            email: studentData.email,
-            asignatura: studentData.subject || 'No especificada',
-            tema: studentData.topic?.replace('.pdf', '') || 'No especificado',
-            puntuacion: correctAnswers,
-            totalPreguntas: totalQuestions,
-            tiempoSegundos: 0, // Por ahora no medimos tiempo
-            preguntasFalladas: wrongQuestions || 'Ninguna'
-          };
-          
-          console.log('Enviando datos a Google Sheets:', analyticsData);
-          await sendToGoogleSheets(analyticsData);
+        // NUEVO: Generar comentario global personalizado
+        if (studentData?.name) {
+          try {
+            console.log('🤖 Generando comentario personalizado...');
+            const comment = await generateGlobalComment(
+              courseMaterial,
+              quizQuestions,
+              results,
+              {
+                tiemposPorPregunta: newBehaviorData.tiemposPorPregunta,
+                cambiosPorPregunta: newBehaviorData.cambiosPorPregunta,
+                dificultadPercibida: newBehaviorData.dificultadPercibida
+              },
+              studentData.name,
+              apiKey
+            );
+            setGlobalComment(comment);
+            
+            // NUEVO: Actualizar behaviorData con el comentario
+            const completeBehaviorData = {
+              ...newBehaviorData,
+              comentarioGlobal: comment
+            };
+            setBehaviorData(completeBehaviorData);
+            
+            console.log('✅ Comentario global generado');
+          } catch (commentError) {
+            console.error('⚠️ Error generando comentario global:', commentError);
+            // No bloquear el flujo si falla el comentario
+          }
         }
+        
+        // NO enviar datos aquí, esperar a que se complete con dificultad
         
         setAppState(AppState.SHOWING_RESULTS);
     } catch (err) {
@@ -176,6 +229,8 @@ const App: React.FC = () => {
     setQuizQuestions([]);
     setEvaluationResults([]);
     setStudentData(null); // Limpiar datos del estudiante
+    setBehaviorData(null); // NUEVO: Limpiar datos de comportamiento
+    setGlobalComment(null); // NUEVO: Limpiar comentario global
     setError(null);
   }, []);
   
@@ -190,7 +245,48 @@ const App: React.FC = () => {
       case AppState.EVALUATING:
         return <Spinner text="Evaluando tus respuestas y preparando el feedback..." />;
       case AppState.SHOWING_RESULTS:
-        return <ResultsView evaluations={evaluationResults} questions={quizQuestions} onStartOver={handleStartOver} />;
+        return (
+          <ResultsView 
+            evaluations={evaluationResults} 
+            questions={quizQuestions} 
+            onStartOver={handleStartOver}
+            globalComment={globalComment || undefined}
+            onDifficultySubmit={(difficulty) => {
+              // NUEVO: Manejar dificultad percibida
+              if (behaviorData) {
+                const updatedBehaviorData = { 
+                  ...behaviorData, 
+                  dificultadPercibida: difficulty 
+                };
+                setBehaviorData(updatedBehaviorData);
+                
+                // NUEVO: Enviar datos completos a Vercel ahora que tenemos todo
+                sendCompleteDataToVercel(updatedBehaviorData);
+                
+                // Si aún no tenemos comentario global, generarlo ahora con la dificultad
+                if (!globalComment && studentData?.name && apiKey) {
+                  generateGlobalComment(
+                    courseMaterial,
+                    quizQuestions,
+                    evaluationResults,
+                    updatedBehaviorData,
+                    studentData.name,
+                    apiKey
+                  ).then(comment => {
+                    setGlobalComment(comment);
+                    // NUEVO: Actualizar behaviorData y reenviar con comentario
+                    const finalBehaviorData = { ...updatedBehaviorData, comentarioGlobal: comment };
+                    setBehaviorData(finalBehaviorData);
+                    sendCompleteDataToVercel(finalBehaviorData);
+                    console.log('✅ Comentario global generado con dificultad percibida');
+                  }).catch(error => {
+                    console.error('Error generando comentario con dificultad:', error);
+                  });
+                }
+              }
+            }}
+          />
+        );
       default:
         return null;
     }

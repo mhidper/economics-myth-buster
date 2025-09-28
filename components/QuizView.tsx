@@ -1,25 +1,72 @@
-import React, { useState } from 'react';
-import type { QuizQuestion } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import type { QuizQuestion, QuizBehaviorData } from '../types';
 
 interface QuizViewProps {
   questions: QuizQuestion[];
-  onSubmit: (answers: (number | null)[]) => void;
+  onSubmit: (answers: (number | null)[], behaviorData: QuizBehaviorData) => void;
 }
 
 const QuizView: React.FC<QuizViewProps> = ({ questions, onSubmit }) => {
   const [answers, setAnswers] = useState<(number | null)[]>(Array(questions.length).fill(null));
+  
+  // NUEVO: Estados para tracking de comportamiento
+  const [startTime] = useState(new Date().toISOString());
+  const [questionStartTimes, setQuestionStartTimes] = useState<number[]>(Array(questions.length).fill(0));
+  const [questionTimes, setQuestionTimes] = useState<number[]>(Array(questions.length).fill(0));
+  const [answerChanges, setAnswerChanges] = useState<number[]>(Array(questions.length).fill(0));
+  const currentQuestionStartTime = useRef<number>(Date.now());
+  const hasStartedTracking = useRef<boolean[]>(Array(questions.length).fill(false));
 
   const handleAnswerChange = (questionIndex: number, optionIndex: number) => {
+    const now = Date.now();
+    
+    // NUEVO: Iniciar tracking de tiempo para esta pregunta si es la primera vez
+    if (!hasStartedTracking.current[questionIndex]) {
+      const newStartTimes = [...questionStartTimes];
+      newStartTimes[questionIndex] = now;
+      setQuestionStartTimes(newStartTimes);
+      hasStartedTracking.current[questionIndex] = true;
+    }
+    
+    // NUEVO: Contar cambio de respuesta si ya tenía una respuesta anterior
+    if (answers[questionIndex] !== null) {
+      const newChanges = [...answerChanges];
+      newChanges[questionIndex] += 1;
+      setAnswerChanges(newChanges);
+    }
+    
+    // Actualizar respuesta (funcionalidad original)
     const newAnswers = [...answers];
     newAnswers[questionIndex] = optionIndex;
     setAnswers(newAnswers);
+    
+    // NUEVO: Actualizar tiempo de esta pregunta
+    if (hasStartedTracking.current[questionIndex]) {
+      const timeSpent = (now - questionStartTimes[questionIndex]) / 1000; // en segundos
+      const newTimes = [...questionTimes];
+      newTimes[questionIndex] = timeSpent;
+      setQuestionTimes(newTimes);
+    }
   };
   
   const isAllAnswered = answers.every(a => a !== null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(answers);
+    
+    // NUEVO: Preparar datos de comportamiento
+    const endTime = new Date().toISOString();
+    
+    const behaviorData: QuizBehaviorData = {
+      tiempoInicioQuiz: startTime,
+      tiempoFinQuiz: endTime,
+      tiemposPorPregunta: questionTimes,
+      cambiosPorPregunta: answerChanges,
+      // dificultadPercibida se añadirá en ResultsView
+      // comentarioGlobal se añadirá cuando se genere con IA
+    };
+    
+    onSubmit(answers, behaviorData);
   };
 
   return (

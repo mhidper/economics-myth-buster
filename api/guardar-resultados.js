@@ -41,6 +41,13 @@ export default async function handler(req, res) {
   try {
     const quizData = req.body;
     
+    // NUEVO: Añadir timestamp y metadata adicional
+    const enrichedData = {
+      ...quizData,
+      timestamp: new Date().toISOString(),
+      version: '1.1' // Para identificar datos con nuevos campos
+    };
+    
     // Validar datos de entrada
     validateQuizData(quizData);
     

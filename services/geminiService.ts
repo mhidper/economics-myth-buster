@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { QuizQuestion, StudentAnswer, EvaluationResult } from '../types';
+import type { QuizQuestion, StudentAnswer, EvaluationResult, QuizBehaviorData } from '../types';
 
 // The API key is no longer loaded from environment variables here.
 // It will be passed into each function call.
@@ -154,4 +154,91 @@ ${JSON.stringify({questions, answers}, null, 2)}
     console.error("Error evaluating answers:", error);
     throw new Error("No se pudieron evaluar las respuestas. Verifica que tu clave de API sea correcta y tenga permisos.");
   }
+};
+
+// NUEVA FUNCIÓN: Generar comentario global personalizado
+export const generateGlobalComment = async (
+    material: string,
+    questions: QuizQuestion[],
+    evaluations: EvaluationResult[],
+    behaviorData: { tiemposPorPregunta?: number[], cambiosPorPregunta?: number[], dificultadPercibida?: number },
+    studentName: string,
+    apiKey: string
+): Promise<string> => {
+    if (!apiKey) throw new Error("API Key is required.");
+    const ai = new GoogleGenAI({ apiKey });
+
+    // Preparar datos de comportamiento para el prompt
+    const correctCount = evaluations.filter(e => e.isCorrect).length;
+    const totalQuestions = evaluations.length;
+    const scorePercentage = Math.round((correctCount / totalQuestions) * 100);
+    
+    // Analizar patrones de tiempo
+    const avgTime = behaviorData.tiemposPorPregunta 
+        ? behaviorData.tiemposPorPregunta.reduce((a, b) => a + b, 0) / behaviorData.tiemposPorPregunta.length 
+        : 0;
+    
+    // Analizar cambios de respuesta
+    const totalChanges = behaviorData.cambiosPorPregunta 
+        ? behaviorData.cambiosPorPregunta.reduce((a, b) => a + b, 0) 
+        : 0;
+    
+    // Preguntas más problemáticas (tiempo alto + cambios + incorrectas)
+    const problematicQuestions = evaluations
+        .map((evaluation, index) => ({
+            index,
+            question: questions[index].question,
+            isCorrect: evaluation.isCorrect,
+            timeSpent: behaviorData.tiemposPorPregunta?.[index] || 0,
+            changes: behaviorData.cambiosPorPregunta?.[index] || 0
+        }))
+        .filter(q => !q.isCorrect || q.timeSpent > avgTime * 1.5 || q.changes > 1)
+        .slice(0, 3); // Solo las 3 más problemáticas
+
+    const prompt = `Eres un profesor de economía experto en pedagogía. Tu tarea es crear un comentario personalizado y constructivo para ${studentName}, basándote en su rendimiento en el cuestionario y su comportamiento durante la realización.
+
+Datos del rendimiento:
+- Puntuación: ${correctCount}/${totalQuestions} (${scorePercentage}%)
+- Tiempo promedio por pregunta: ${avgTime.toFixed(1)} segundos
+- Total de cambios de respuesta: ${totalChanges}
+- Dificultad percibida por el estudiante: ${behaviorData.dificultadPercibida}/5
+
+Preguntas más problemáticas:
+${problematicQuestions.map(q => `- Pregunta ${q.index + 1}: ${q.timeSpent.toFixed(1)}s, ${q.changes} cambios, ${q.isCorrect ? 'correcta' : 'incorrecta'}`).join('\n')}
+
+Resultados detallados:
+${evaluations.map((evaluation, i) => `Pregunta ${i + 1}: ${evaluation.isCorrect ? 'CORRECTA' : 'INCORRECTA'} - Respuesta: "${evaluation.studentAnswer}"`).join('\n')}
+
+Material del curso:
+---
+${material}
+---
+
+Crea un comentario personalizado que:
+1. **Felicite los aciertos** y reconozca el esfuerzo
+2. **Analice los patrones de comportamiento** (tiempos, cambios, dificultad percibida)
+3. **Identifique conceptos que necesita reforzar** basándote en errores específicos
+4. **Proporcione recomendaciones concretas** de estudio
+5. **Sea motivador y constructivo**, no crítico
+
+El comentario debe ser:
+- Dirigido directamente a ${studentName} (tutéale)
+- Entre 200-400 palabras
+- En español
+- Específico sobre sus respuestas y comportamiento
+- Educativo y motivador
+
+No uses formato JSON, responde solo con el texto del comentario.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+        });
+
+        return response.text.trim();
+    } catch (error) {
+        console.error("Error generating global comment:", error);
+        throw new Error("No se pudo generar el comentario personalizado.");
+    }
 };

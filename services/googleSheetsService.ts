@@ -1,4 +1,5 @@
 // Ya no necesitamos importar la configuración de Google Sheets
+import { QuizBehaviorData } from '../types';
 
 // Función para enviar datos a nuestra propia API en Vercel
 export const sendToGoogleSheets = async (data: { // Puedes mantener el nombre o cambiarlo a sendResults
@@ -10,6 +11,8 @@ export const sendToGoogleSheets = async (data: { // Puedes mantener el nombre o 
   totalPreguntas: number;
   tiempoSegundos: number;
   preguntasFalladas: string;
+  // NUEVO: Datos de comportamiento opcionales
+  behaviorData?: QuizBehaviorData;
 }) => {
   try {
     console.log('Enviando datos a nuestra API en Vercel:', data);
