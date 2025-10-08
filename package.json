@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-metadata": "node scripts/generate-materials-metadata.js",
+    "prebuild": "npm run generate-metadata"
   },
   "dependencies": {
     "@google/genai": "^1.19.0",
+    "@vercel/analytics": "^1.5.0",
     "@vercel/blob": "^2.0.0",
     "pdfjs-dist": "^4.5.136",
     "react": "^19.1.1",

@@ -19,39 +19,37 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
   // Función para detectar asignaturas disponibles
   const loadAvailableSubjects = async () => {
     try {
-      // Por ahora, lista hardcodeada basada en tu estructura actual
-      // En el siguiente paso haremos esto dinámico
-      const subjects = ['Economía Política', 'Macroeconómia Básica', 'Políticas SocioLaborales'];
+      const response = await fetch('/materials-metadata.json');
+      if (!response.ok) {
+        throw new Error('No se pudo cargar el metadata de materiales');
+      }
+      const metadata = await response.json();
+      const subjects = Object.keys(metadata);
       setAvailableSubjects(subjects);
       console.log('Asignaturas detectadas:', subjects);
     } catch (error) {
       console.error('Error cargando asignaturas:', error);
+      // Fallback a lista hardcodeada si falla
+      const subjects = ['Economía Política', 'Macroeconómia Básica', 'Políticas SocioLaborales'];
+      setAvailableSubjects(subjects);
     }
   };
 
   // Función para cargar temas de una asignatura específica
   const loadTopicsForSubject = async (subjectName: string) => {
     try {
-      // Por ahora, mapeo hardcodeado basado en tu estructura actual
-      const topicMap: Record<string, string[]> = {
-        'Economía Política': [
-          'Tema 1. La Escasez y el Coste de Oportunidad.pdf',
-          'Tema 2. La División del Trabajo y la Eficiencia.pdf'
-        ],
-        'Macroeconómia Básica': [
-          // Vacío por ahora
-        ],
-        'Políticas SocioLaborales': [
-          'Tema 1 El Mercado de Trabajo. Equilibrio y tipos de desempleo.pdf'
-        ]
-      };
-      
-      const topics = topicMap[subjectName] || [];
+      const response = await fetch('/materials-metadata.json');
+      if (!response.ok) {
+        throw new Error('No se pudo cargar el metadata de materiales');
+      }
+      const metadata = await response.json();
+      const topics = metadata[subjectName] || [];
       setAvailableTopics(topics);
       setSelectedTopic(''); // Reset topic selection
       console.log(`Temas para ${subjectName}:`, topics);
     } catch (error) {
       console.error('Error cargando temas:', error);
+      setAvailableTopics([]);
     }
   };
 
