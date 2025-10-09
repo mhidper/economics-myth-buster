@@ -70,14 +70,14 @@ const evaluationSchema = {
 };
 
 
-export const generateQuizFromMaterial = async (material: string, apiKey: string): Promise<QuizQuestion[]> => {
+export const generateQuizFromMaterial = async (material: string, apiKey: string, numQuestions: number = 5): Promise<QuizQuestion[]> => {
   if (!apiKey) throw new Error("API Key is required.");
   const ai = new GoogleGenAI({ apiKey });
   
   const prompt = `
 Eres un profesor de economía experto en pedagogía y en identificar y corregir errores conceptuales comunes en los estudiantes. Tu objetivo no es solo evaluar si el estudiante memorizó el material, sino descubrir sus creencias preexistentes sobre economía, especialmente los mitos populares.
 
-Basado en los temas centrales del siguiente material del curso, que está en español, genera un cuestionario de 10 preguntas de opción múltiple, todo en español. Las preguntas no deben ser sobre detalles específicos del texto, sino que deben usar los conceptos del texto (como 'coste de oportunidad') para plantear escenarios del mundo real o preguntas conceptuales que pongan a prueba las intuiciones del estudiante. Trata de usar ejemplos reales, o aunque sean inventados, que se puedan encontrar en la realidad. 
+Basado en los temas centrales del siguiente material del curso, que está en español, genera un cuestionario de ${numQuestions} preguntas de opción múltiple, todo en español. Las preguntas no deben ser sobre detalles específicos del texto, sino que deben usar los conceptos del texto (como 'coste de oportunidad') para plantear escenarios del mundo real o preguntas conceptuales que pongan a prueba las intuiciones del estudiante. Trata de usar ejemplos reales, o aunque sean inventados, que se puedan encontrar en la realidad. 
 
 Para cada pregunta, diseña las opciones de respuesta de la siguiente manera:
 - Una opción claramente correcta según la teoría económica presentada en el material o similar que puedas conocer y relacionar.

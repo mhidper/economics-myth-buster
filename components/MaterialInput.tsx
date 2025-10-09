@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 interface MaterialInputProps {
-  onGenerate: (source: string | File, studentData?: {name: string, email: string, subject?: string, topic?: string}) => void;
+  onGenerate: (source: string | File, studentData?: {name: string, email: string, subject?: string, topic?: string, numQuestions?: number}) => void;
 }
 
 const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
@@ -15,6 +15,9 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
   // Datos del estudiante para Google Sheets
   const [studentName, setStudentName] = useState<string>('');
   const [studentEmail, setStudentEmail] = useState<string>('');
+  
+  // Número de preguntas
+  const [numQuestions, setNumQuestions] = useState<number>(5);
 
   // Función para detectar asignaturas disponibles
   const loadAvailableSubjects = async () => {
@@ -100,7 +103,8 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
       name: studentName,
       email: studentEmail,
       subject: selectedSubject,
-      topic: selectedTopic
+      topic: selectedTopic,
+      numQuestions: numQuestions
     };
     
     // Prioridad: 1. Tema seleccionado, 2. Archivo subido, 3. Texto pegado
@@ -201,6 +205,36 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
               </p>
             </div>
           )}
+        </div>
+        
+        {/* Selector de Número de Preguntas */}
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 p-6 rounded-xl mb-8 shadow-sm" style={{borderColor: '#FCC100'}}>
+          <h3 className="text-lg font-semibold mb-4 flex items-center" style={{color: '#003772'}}>
+            <span className="text-2xl mr-2">❓</span>
+            Número de Preguntas
+          </h3>
+          <div className="flex items-center gap-4">
+            <label className="block text-sm font-medium" style={{color: '#003772'}}>
+              ¿Cuántas preguntas quieres en el cuestionario?
+            </label>
+            <select
+              value={numQuestions}
+              onChange={(e) => setNumQuestions(Number(e.target.value))}
+              className="p-3 border-2 rounded-lg text-base font-semibold bg-white shadow-sm transition-all duration-300 focus:ring-2 focus:ring-yellow-500"
+              style={{borderColor: '#FCC100', color: '#003772', minWidth: '100px'}}
+            >
+              <option value={3}>3 preguntas</option>
+              <option value={5}>5 preguntas</option>
+              <option value={7}>7 preguntas</option>
+              <option value={10}>10 preguntas</option>
+              <option value={15}>15 preguntas</option>
+            </select>
+          </div>
+          <div className="mt-3 p-2 rounded-lg text-center" style={{backgroundColor: '#FCC100'}}>
+            <p className="text-sm font-medium" style={{color: '#003772'}}>
+              📊 Se generarán <strong>{numQuestions} preguntas</strong> sobre el material seleccionado
+            </p>
+          </div>
         </div>
       
       {/* Selector de Asignaturas */}

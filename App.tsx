@@ -60,7 +60,7 @@ const App: React.FC = () => {
     handleStartOver();
   };
 
-  const handleGenerateQuiz = useCallback(async (source: string | File, studentInfo?: {name: string, email: string, subject?: string, topic?: string}) => {
+  const handleGenerateQuiz = useCallback(async (source: string | File, studentInfo?: {name: string, email: string, subject?: string, topic?: string, numQuestions?: number}) => {
     if (!apiKey) {
       setError("La clave de API no está configurada.");
       return;
@@ -107,7 +107,8 @@ const App: React.FC = () => {
 
       setCourseMaterial(materialText);
 
-      const questions = await generateQuizFromMaterial(materialText, apiKey);
+      const numQuestions = studentInfo?.numQuestions || 5;
+      const questions = await generateQuizFromMaterial(materialText, apiKey, numQuestions);
       if (questions && questions.length > 0) {
         setQuizQuestions(questions);
         setAppState(AppState.TAKING_QUIZ);
