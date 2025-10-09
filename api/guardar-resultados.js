@@ -3,7 +3,7 @@ import { put, list, del } from '@vercel/blob';
 
 // Función para validar los datos recibidos
 function validateQuizData(data) {
-  const required = ['nombre', 'email', 'asignatura', 'tema', 'puntuacion', 'totalPreguntas'];
+  const required = ['username', 'edad', 'provincia', 'asignatura', 'tema', 'puntuacion', 'totalPreguntas'];
   const missing = required.filter(field => !data[field] && data[field] !== 0);
   
   if (missing.length > 0) {
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
     };
     
     const blobFileName = 'resultados.json';
-    console.log(`📝 Procesando nuevo resultado para: ${quizData.nombre}`);
+    console.log(`📝 Procesando nuevo resultado para: ${quizData.username} (${quizData.edad} años, ${quizData.provincia})`);
     
     // NUEVO: Log de datos de comportamiento si existen
     if (quizData.behaviorData) {
@@ -109,13 +109,19 @@ export default async function handler(req, res) {
       message: 'Resultados guardados correctamente', 
       blobUrl: url,
       totalResults: allResults.length,
-      studentName: quizData.nombre,
+      studentName: quizData.username,
       score: `${quizData.puntuacion}/${quizData.totalPreguntas}`,
       // NUEVO: Información sobre datos guardados
       dataIncluded: {
         behaviorData: !!quizData.behaviorData,
         globalComment: !!(quizData.behaviorData?.comentarioGlobal),
-        difficulty: quizData.behaviorData?.dificultadPercibida || null
+        difficulty: quizData.behaviorData?.dificultadPercibida || null,
+        demographics: {
+          edad: quizData.edad,
+          sexo: quizData.sexo,
+          provincia: quizData.provincia,
+          conocimientoPrevio: quizData.conocimientoPrevio
+        }
       }
     });
 

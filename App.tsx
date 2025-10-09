@@ -23,7 +23,15 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   
   // Datos del estudiante para Google Sheets
-  const [studentData, setStudentData] = useState<{name: string, email: string, subject?: string, topic?: string} | null>(null);
+  const [studentData, setStudentData] = useState<{
+    username: string;
+    edad: number;
+    sexo: 'masculino' | 'femenino' | 'otro' | 'prefiero-no-decir';
+    provincia: string;
+    conocimientoPrevio: 'ninguno' | 'basico' | 'intermedio' | 'avanzado';
+    subject?: string;
+    topic?: string;
+  } | null>(null);
   
   // NUEVO: Datos de comportamiento del quiz
   const [behaviorData, setBehaviorData] = useState<QuizBehaviorData | null>(null);
@@ -60,7 +68,17 @@ const App: React.FC = () => {
     handleStartOver();
   };
 
-  const handleGenerateQuiz = useCallback(async (source: string | File, studentInfo?: {name: string, email: string, subject?: string, topic?: string, numQuestions?: number, mythDifficulty?: 'baja' | 'media' | 'alta'}) => {
+  const handleGenerateQuiz = useCallback(async (source: string | File, studentInfo?: {
+    username: string;
+    edad: number;
+    sexo: 'masculino' | 'femenino' | 'otro' | 'prefiero-no-decir';
+    provincia: string;
+    conocimientoPrevio: 'ninguno' | 'basico' | 'intermedio' | 'avanzado';
+    subject?: string;
+    topic?: string;
+    numQuestions?: number;
+    mythDifficulty?: 'baja' | 'media' | 'alta';
+  }) => {
     if (!apiKey) {
       setError("La clave de API no está configurada.");
       return;
@@ -126,7 +144,7 @@ const App: React.FC = () => {
   
   // NUEVO: Función para enviar datos completos a Vercel
   const sendCompleteDataToVercel = useCallback(async (completeBehaviorData: QuizBehaviorData) => {
-    if (studentData && studentData.name && studentData.email && evaluationResults.length > 0) {
+    if (studentData && studentData.username && evaluationResults.length > 0) {
       const correctAnswers = evaluationResults.filter(r => r.isCorrect).length;
       const totalQuestions = evaluationResults.length;
       const wrongQuestions = evaluationResults
@@ -140,8 +158,11 @@ const App: React.FC = () => {
         : 0;
       
       const analyticsData = {
-        nombre: studentData.name,
-        email: studentData.email,
+        username: studentData.username,
+        edad: studentData.edad,
+        sexo: studentData.sexo,
+        provincia: studentData.provincia,
+        conocimientoPrevio: studentData.conocimientoPrevio,
         asignatura: studentData.subject || 'No especificada',
         tema: studentData.topic?.replace('.pdf', '') || 'No especificado',
         puntuacion: correctAnswers,
@@ -183,7 +204,7 @@ const App: React.FC = () => {
         setEvaluationResults(results);
         
         // NUEVO: Generar comentario global personalizado
-        if (studentData?.name) {
+        if (studentData?.username) {
           try {
             console.log('🤖 Generando comentario personalizado...');
             const comment = await generateGlobalComment(
@@ -195,7 +216,7 @@ const App: React.FC = () => {
                 cambiosPorPregunta: newBehaviorData.cambiosPorPregunta,
                 dificultadPercibida: newBehaviorData.dificultadPercibida
               },
-              studentData.name,
+              studentData.username,
               apiKey
             );
             setGlobalComment(comment);
@@ -266,13 +287,13 @@ const App: React.FC = () => {
                 sendCompleteDataToVercel(updatedBehaviorData);
                 
                 // Si aún no tenemos comentario global, generarlo ahora con la dificultad
-                if (!globalComment && studentData?.name && apiKey) {
+                if (!globalComment && studentData?.username && apiKey) {
                   generateGlobalComment(
                     courseMaterial,
                     quizQuestions,
                     evaluationResults,
                     updatedBehaviorData,
-                    studentData.name,
+                    studentData.username,
                     apiKey
                   ).then(comment => {
                     setGlobalComment(comment);

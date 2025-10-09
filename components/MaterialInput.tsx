@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
 interface MaterialInputProps {
-  onGenerate: (source: string | File, studentData?: {name: string, email: string, subject?: string, topic?: string, numQuestions?: number, mythDifficulty?: 'baja' | 'media' | 'alta'}) => void;
+  onGenerate: (source: string | File, studentData?: {
+    username: string;
+    edad: number;
+    sexo: 'masculino' | 'femenino' | 'otro' | 'prefiero-no-decir';
+    provincia: string;
+    conocimientoPrevio: 'ninguno' | 'basico' | 'intermedio' | 'avanzado';
+    subject?: string;
+    topic?: string;
+    numQuestions?: number;
+    mythDifficulty?: 'baja' | 'media' | 'alta';
+  }) => void;
 }
 
 const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
@@ -13,8 +23,11 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
   const [selectedTopic, setSelectedTopic] = useState<string>('');
   
   // Datos del estudiante para Google Sheets
-  const [studentName, setStudentName] = useState<string>('');
-  const [studentEmail, setStudentEmail] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
+  const [edad, setEdad] = useState<string>(''); 
+  const [sexo, setSexo] = useState<'masculino' | 'femenino' | 'otro' | 'prefiero-no-decir'>('prefiero-no-decir');
+  const [provincia, setProvincia] = useState<string>('');
+  const [conocimientoPrevio, setConocimientoPrevio] = useState<'ninguno' | 'basico' | 'intermedio' | 'avanzado'>('ninguno');
   
   // Número de preguntas
   const [numQuestions, setNumQuestions] = useState<number>(5);
@@ -103,8 +116,11 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
     
     // Crear objeto con datos del estudiante
     const studentData = {
-      name: studentName,
-      email: studentEmail,
+      username: username,
+      edad: parseInt(edad) || 0,
+      sexo: sexo,
+      provincia: provincia,
+      conocimientoPrevio: conocimientoPrevio,
       subject: selectedSubject,
       topic: selectedTopic,
       numQuestions: numQuestions,
@@ -170,42 +186,103 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
         
         {/* Datos del Estudiante */}
         <div className="bg-slate-50 border-2 p-6 rounded-xl mb-8 shadow-sm" style={{borderColor: '#003772'}}>
-          <h3 className="text-lg font-semibold mb-4 flex items-center" style={{color: '#003772'}}>
+          <h3 className="text-lg font-semibold mb-2 flex items-center" style={{color: '#003772'}}>
             <span className="text-2xl mr-2">👨‍🎓</span>
-            Datos del Estudiante
+            Datos del Participante
           </h3>
+          <p className="text-xs text-gray-500 mb-4">
+            🔒 Estos datos son anónimos y confidenciales. No se harán públicos ni se compartirán con terceros.
+          </p>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Username */}
             <div>
               <label className="block text-sm font-medium mb-1" style={{color: '#003772'}}>
-                Nombre completo:
+                Nombre de usuario:
               </label>
               <input
                 type="text"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-                placeholder="Tu nombre completo"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Elige un username"
                 className="w-full p-3 border-2 rounded-lg text-base bg-white shadow-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500"
                 style={{borderColor: '#003772'}}
               />
             </div>
+            
+            {/* Edad */}
             <div>
               <label className="block text-sm font-medium mb-1" style={{color: '#003772'}}>
-                Email:
+                Edad:
               </label>
               <input
-                type="email"
-                value={studentEmail}
-                onChange={(e) => setStudentEmail(e.target.value)}
-                placeholder="tu.email@ejemplo.com"
+                type="number"
+                value={edad}
+                onChange={(e) => setEdad(e.target.value)}
+                placeholder="Tu edad"
+                min="10"
+                max="100"
                 className="w-full p-3 border-2 rounded-lg text-base bg-white shadow-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500"
                 style={{borderColor: '#003772'}}
               />
             </div>
+            
+            {/* Sexo */}
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{color: '#003772'}}>
+                Género:
+              </label>
+              <select
+                value={sexo}
+                onChange={(e) => setSexo(e.target.value as any)}
+                className="w-full p-3 border-2 rounded-lg text-base bg-white shadow-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500"
+                style={{borderColor: '#003772'}}
+              >
+                <option value="prefiero-no-decir">Prefiero no decir</option>
+                <option value="masculino">Masculino</option>
+                <option value="femenino">Femenino</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            
+            {/* Provincia */}
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{color: '#003772'}}>
+                Provincia:
+              </label>
+              <input
+                type="text"
+                value={provincia}
+                onChange={(e) => setProvincia(e.target.value)}
+                placeholder="Tu provincia"
+                className="w-full p-3 border-2 rounded-lg text-base bg-white shadow-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500"
+                style={{borderColor: '#003772'}}
+              />
+            </div>
+            
+            {/* Conocimiento Previo */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1" style={{color: '#003772'}}>
+                ¿Has estudiado economía anteriormente?
+              </label>
+              <select
+                value={conocimientoPrevio}
+                onChange={(e) => setConocimientoPrevio(e.target.value as any)}
+                className="w-full p-3 border-2 rounded-lg text-base bg-white shadow-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500"
+                style={{borderColor: '#003772'}}
+              >
+                <option value="ninguno">No, es mi primera vez</option>
+                <option value="basico">Sí, nivel básico (secundaria)</option>
+                <option value="intermedio">Sí, nivel intermedio (bachillerato/FP)</option>
+                <option value="avanzado">Sí, nivel avanzado (universidad/posgrado)</option>
+              </select>
+            </div>
           </div>
-          {studentName && studentEmail && (
+          
+          {username && edad && provincia && (
             <div className="mt-4 p-3 rounded-lg text-center" style={{backgroundColor: '#003772', color: 'white'}}>
               <p className="text-sm font-medium">
-                ✅ Datos completados - Ya puedes seleccionar asignatura
+                ✅ Datos completados - Ya puedes configurar tu cuestionario
               </p>
             </div>
           )}
@@ -306,7 +383,7 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
       {/* Selector de Asignaturas */}
       {availableSubjects.length > 0 && (
         <div className={`p-6 rounded-xl mb-8 shadow-lg transition-all duration-300 ${
-          !studentName || !studentEmail ? 'opacity-50 pointer-events-none' : ''
+          !username || !edad || !provincia ? 'opacity-50 pointer-events-none' : ''
         }`} style={{background: 'linear-gradient(135deg, #003772 0%, #0056b3 100%)', color: 'white'}}>
           <label className="block text-xl font-bold mb-4 flex items-center">
             <span className="text-3xl mr-3">🎯</span>
