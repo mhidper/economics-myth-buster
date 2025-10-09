@@ -70,12 +70,45 @@ const evaluationSchema = {
 };
 
 
-export const generateQuizFromMaterial = async (material: string, apiKey: string, numQuestions: number = 5): Promise<QuizQuestion[]> => {
+export const generateQuizFromMaterial = async (material: string, apiKey: string, numQuestions: number = 5, mythDifficulty: 'baja' | 'media' | 'alta' = 'media'): Promise<QuizQuestion[]> => {
   if (!apiKey) throw new Error("API Key is required.");
   const ai = new GoogleGenAI({ apiKey });
   
+  // Definir instrucciones según la dificultad
+  const difficultyInstructions = {
+    baja: `
+NIVEL DE DIFICULTAD: BÁSICA
+Las preguntas deben ser accesibles para principiantes:
+- Usa mitos MUY EVIDENTES y ampliamente conocidos (como "el dinero lo es todo", "la oferta y demanda no afectan al mercado laboral")
+- Las respuestas correctas deben ser CLARAS e INTUITIVAS una vez se piensa un poco
+- Los escenarios deben ser COTIDIANOS y FÁCILES de entender
+- Evita tecnicismos complejos
+- Ejemplo: "Si el gobierno sube el salario mínimo, ¿qué pasará con el empleo?" con opciones muy obvias`,
+    
+    media: `
+NIVEL DE DIFICULTAD: INTERMEDIA
+Las preguntas deben requerir pensamiento crítico:
+- Usa mitos COMUNES pero que requieren análisis para detectar (como "los aranceles siempre protegen la industria nacional", "la inflación siempre es mala")
+- Las respuestas correctas requieren APLICAR conceptos del material
+- Los escenarios deben ser REALISTAS pero con cierta complejidad
+- Incluye algunos tecnicismos económicos básicos
+- Ejemplo: "Una empresa monopolística decide subir precios, ¿qué efecto tendrá en el excedente del consumidor?"`,
+    
+    alta: `
+NIVEL DE DIFICULTAD: AVANZADA
+Las preguntas deben ser DESAFIANTES incluso para estudiantes avanzados:
+- Usa mitos SUTILES y sofisticados que parecen razonables (como "el PIB siempre mide el bienestar", "los impuestos progresivos siempre reducen la desigualdad")
+- Las respuestas correctas requieren CONOCIMIENTO PROFUNDO de la teoría económica
+- Los escenarios deben incluir MATICES y TRADE-OFFS complejos
+- Usa terminología técnica económica avanzada
+- Las opciones incorrectas deben ser PLAUSIBLES y difíciles de descartar sin conocimiento sólido
+- Ejemplo: "Ante una crisis de liquidez, ¿cuál es el efecto de la expansión cuantitativa en el largo plazo considerando las expectativas racionales?"`
+  };
+  
   const prompt = `
 Eres un profesor de economía experto en pedagogía y en identificar y corregir errores conceptuales comunes en los estudiantes. Tu objetivo no es solo evaluar si el estudiante memorizó el material, sino descubrir sus creencias preexistentes sobre economía, especialmente los mitos populares.
+
+${difficultyInstructions[mythDifficulty]}
 
 Basado en los temas centrales del siguiente material del curso, que está en español, genera un cuestionario de ${numQuestions} preguntas de opción múltiple, todo en español. Las preguntas no deben ser sobre detalles específicos del texto, sino que deben usar los conceptos del texto (como 'coste de oportunidad') para plantear escenarios del mundo real o preguntas conceptuales que pongan a prueba las intuiciones del estudiante. Trata de usar ejemplos reales, o aunque sean inventados, que se puedan encontrar en la realidad. 
 

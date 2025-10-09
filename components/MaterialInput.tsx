@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 interface MaterialInputProps {
-  onGenerate: (source: string | File, studentData?: {name: string, email: string, subject?: string, topic?: string, numQuestions?: number}) => void;
+  onGenerate: (source: string | File, studentData?: {name: string, email: string, subject?: string, topic?: string, numQuestions?: number, mythDifficulty?: 'baja' | 'media' | 'alta'}) => void;
 }
 
 const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
@@ -18,6 +18,9 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
   
   // Número de preguntas
   const [numQuestions, setNumQuestions] = useState<number>(5);
+  
+  // Dificultad/temperatura de los mitos
+  const [mythDifficulty, setMythDifficulty] = useState<'baja' | 'media' | 'alta'>('media');
 
   // Función para detectar asignaturas disponibles
   const loadAvailableSubjects = async () => {
@@ -104,7 +107,8 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
       email: studentEmail,
       subject: selectedSubject,
       topic: selectedTopic,
-      numQuestions: numQuestions
+      numQuestions: numQuestions,
+      mythDifficulty: mythDifficulty
     };
     
     // Prioridad: 1. Tema seleccionado, 2. Archivo subido, 3. Texto pegado
@@ -234,6 +238,67 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
           <div className="mt-3 p-2 rounded-lg text-center" style={{backgroundColor: '#FCC100'}}>
             <p className="text-sm font-medium" style={{color: '#003772'}}>
               📊 Se generarán <strong>{numQuestions} preguntas</strong> sobre el material seleccionado
+            </p>
+          </div>
+        </div>
+        
+        {/* Selector de Dificultad de Mitos */}
+        <div className="bg-gradient-to-r from-red-50 to-purple-50 border-2 p-6 rounded-xl mb-8 shadow-sm" style={{borderColor: '#8B1538'}}>
+          <h3 className="text-lg font-semibold mb-4 flex items-center" style={{color: '#003772'}}>
+            <span className="text-2xl mr-2">🔥</span>
+            Dificultad de Detección de Mitos
+          </h3>
+          <div className="space-y-4">
+            <p className="text-sm" style={{color: '#003772'}}>
+              Selecciona qué tan sutiles serán los mitos económicos en las preguntas:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() => setMythDifficulty('baja')}
+                className={`p-4 rounded-lg border-2 transition-all duration-300 ${
+                  mythDifficulty === 'baja' 
+                    ? 'border-green-500 bg-green-100 shadow-lg scale-105' 
+                    : 'border-gray-300 bg-white hover:border-green-400'
+                }`}
+              >
+                <div className="text-2xl mb-2">👶</div>
+                <div className="font-bold text-green-700">Básica</div>
+                <div className="text-xs text-gray-600 mt-1">Mitos evidentes, respuestas claras</div>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setMythDifficulty('media')}
+                className={`p-4 rounded-lg border-2 transition-all duration-300 ${
+                  mythDifficulty === 'media' 
+                    ? 'border-yellow-500 bg-yellow-100 shadow-lg scale-105' 
+                    : 'border-gray-300 bg-white hover:border-yellow-400'
+                }`}
+              >
+                <div className="text-2xl mb-2">🎯</div>
+                <div className="font-bold text-yellow-700">Intermedia</div>
+                <div className="text-xs text-gray-600 mt-1">Mitos comunes, requiere análisis</div>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setMythDifficulty('alta')}
+                className={`p-4 rounded-lg border-2 transition-all duration-300 ${
+                  mythDifficulty === 'alta' 
+                    ? 'border-red-500 bg-red-100 shadow-lg scale-105' 
+                    : 'border-gray-300 bg-white hover:border-red-400'
+                }`}
+              >
+                <div className="text-2xl mb-2">🧠</div>
+                <div className="font-bold text-red-700">Avanzada</div>
+                <div className="text-xs text-gray-600 mt-1">Mitos sutiles, conocimiento profundo</div>
+              </button>
+            </div>
+          </div>
+          <div className="mt-4 p-3 rounded-lg text-center" style={{backgroundColor: mythDifficulty === 'baja' ? '#86efac' : mythDifficulty === 'media' ? '#fde047' : '#fca5a5'}}>
+            <p className="text-sm font-bold" style={{color: '#003772'}}>
+              🎯 Dificultad seleccionada: <strong className="uppercase">{mythDifficulty}</strong>
             </p>
           </div>
         </div>
