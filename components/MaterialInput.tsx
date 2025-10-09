@@ -228,6 +228,7 @@ const MaterialInput: React.FC<MaterialInputProps> = ({ onGenerate }) => {
               <option value={7}>7 preguntas</option>
               <option value={10}>10 preguntas</option>
               <option value={15}>15 preguntas</option>
+              <option value={20}>20 preguntas</option>
             </select>
           </div>
           <div className="mt-3 p-2 rounded-lg text-center" style={{backgroundColor: '#FCC100'}}>
