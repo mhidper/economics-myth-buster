@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import Header from './components/Header';
 import MaterialInput from './components/MaterialInput';
 import QuizView from './components/QuizView';
@@ -10,6 +11,7 @@ import { generateQuizFromMaterial, evaluateStudentAnswers, generateGlobalComment
 import { sendToGoogleSheets } from './services/googleSheetsService';
 import { AppState, QuizQuestion, StudentAnswer, EvaluationResult, QuizBehaviorData } from './types';
 import * as pdfjsLib from 'pdfjs-dist';
+
 
 // Import the worker
 import 'pdfjs-dist/build/pdf.worker.mjs';
@@ -320,18 +322,21 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="bg-slate-50 min-h-screen font-sans">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        {error && <Alert message={error} onClose={() => setError(null)} />}
-        {renderContent()}
-      </main>
-       <footer className="text-center py-4">
+    <>
+      <div className="bg-slate-50 min-h-screen font-sans">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          {error && <Alert message={error} onClose={() => setError(null)} />}
+          {renderContent()}
+        </main>
+        <footer className="text-center py-4">
           <button onClick={handleClearApiKey} className="text-sm text-slate-500 hover:text-slate-700 hover:underline">
             Cambiar Clave de API
           </button>
         </footer>
-    </div>
+      </div>
+      <Analytics />
+    </>
   );
 };
 
